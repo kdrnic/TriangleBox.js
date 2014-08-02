@@ -1,0 +1,164 @@
+<html>
+	<head>
+		<script src="three.js"></script>
+		<script src="../TriangleBox.js"></script>
+		<script src="TrackballControls.js"></script>
+		<script>
+
+function CreateTriangle(a, b, c)
+{
+	var g = new THREE.Geometry();
+	g.vertices = [];
+	g.vertices.push(a);
+	g.vertices.push(b);
+	g.vertices.push(c);
+	g.faces = [];
+	g.faces.push(new THREE.Face3(0, 1, 2));
+	var mesh = new THREE.Mesh(g, colorMaterials["red"]);
+	scene.add(mesh);
+	return mesh;
+}
+
+function CreateSegment(a, b)
+{
+	var aToB = new THREE.Vector3();
+	aToB.copy(b);
+	aToB.sub(a);
+	var l = aToB.length();
+	
+	var segObj = new THREE.Object3D();
+	
+	var coneMesh = new THREE.Mesh(coneGeo, colorMaterials["green"]);
+	var cylinderMesh = new THREE.Mesh(cylinderGeo, colorMaterials["green"]);
+	coneMesh.rotation.x = 0.5 * Math.PI;
+	cylinderMesh.rotation.x = 0.5 * Math.PI;
+	if(l < 1)
+	{
+		coneMesh.scale.multiplyScalar(l);
+		coneMesh.position.z += l * 0.5;
+		cylinderMesh.scale.multiplyScalar(0.0001);
+	}
+	else
+	{
+		coneMesh.position.z += l - 0.5;
+		cylinderMesh.scale.y *= (l - 1.0);
+		cylinderMesh.position.z += (l - 1.0) * 0.5;
+	}
+	
+	segObj.add(coneMesh);
+	segObj.add(cylinderMesh);
+	segObj.position.copy(a);
+	segObj.lookAt(b);
+	scene.add(segObj);
+	return segObj;
+}
+
+function RandomTest()
+{
+	c = [5 - Math.random() * 10, 5 - Math.random() * 10, 5 - Math.random() * 10];
+	triangle = 
+	[
+		[5 - Math.random() * 10, 5 - Math.random() * 10, 5 - Math.random() * 10],
+		[5 - Math.random() * 10, 5 - Math.random() * 10, 5 - Math.random() * 10],
+		[5 - Math.random() * 10, 5 - Math.random() * 10, 5 - Math.random() * 10]
+	];
+}
+
+function Test()
+{
+	var a = new THREE.Vector3(triangle[0][0], triangle[0][1], triangle[0][2]);
+	var b = new THREE.Vector3(triangle[1][0], triangle[1][1], triangle[1][2]);
+	var _c = new THREE.Vector3(triangle[2][0], triangle[2][1], triangle[2][2]);
+	triangleMesh = CreateTriangle(a, b, _c);
+	e = [1, 1, 1];
+	t = [0, 0, 0];
+	//while(!TriangleBoxCollision(c, e, triangle, t)) c = [5 - Math.random() * 10, 5 - Math.random() * 10, 5 - Math.random() * 10];
+	color = "green";
+	if(TriangleBoxCollision(c, e, triangle, t)) color = "blue";
+	boxMesh = new THREE.Mesh(boxGeo, colorMaterials[color]);
+	boxMesh.position.copy({x: c[0], y: c[1], z: c[2]});
+	var _b = new THREE.Vector3();
+	var _t = new THREE.Vector3();
+	_t.copy({x: t[0], y: t[1], z: t[2]});
+	_b.copy({x: t[0], y: t[1], z: t[2]});
+	_b.add(boxMesh.position);
+	if(_t.length() > 0)
+	{
+		translationMesh = CreateSegment(boxMesh.position, _b);
+		//otherBoxMesh = new THREE.Mesh(boxGeo, colorMaterials["blue"]);
+		//otherBoxMesh.position.copy(_b);
+		//scene.add(otherBoxMesh);
+	}
+	scene.add(boxMesh);
+}
+
+function RemoveTest()
+{
+	scene.remove(triangleMesh);
+	scene.remove(boxMesh);
+	if(typeof translationMesh != "undefined") scene.remove(translationMesh);
+	if(typeof otherBoxMesh != "undefined") scene.remove(otherBoxMesh);
+}
+
+function Start()
+{
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(75, 640/480, 0.1, 1000);
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(640, 480);
+	document.body.appendChild(renderer.domElement);
+	
+	coneGeo = new THREE.CylinderGeometry(0, 0.25, 1, 8, 1, false);
+	cylinderGeo = new THREE.CylinderGeometry(0.1, 0.1, 1, 8, 1, false);
+	boxGeo = new THREE.BoxGeometry(2, 2, 2);
+	colorMaterials = {};
+	colorMaterials["red"] = new THREE.MeshBasicMaterial({color: "red", side: THREE.DoubleSide});
+	colorMaterials["green"] = new THREE.MeshBasicMaterial({color: "green"});
+	colorMaterials["blue"] = new THREE.MeshBasicMaterial({color: "blue", transparent: true, opacity: 0.5});
+	
+	RandomTest();
+	Test();
+	
+	controls = new THREE.TrackballControls(camera, renderer.domElement);
+	controls.rotateSpeed = 1.0;
+	controls.zoomSpeed = 1.2;
+	controls.panSpeed = 0.8;
+	controls.noZoom = false;
+	controls.noPan = false;
+	controls.staticMoving = true;
+	controls.dynamicDampingFactor = 0.3;
+	controls.keys = [65, 83, 68];
+	
+	frame = 0;
+	
+	Render();
+}
+
+function Render()
+{
+	frame++;
+	if(frame == 30)
+	{
+		camera.position.copy({x: 5, y: 0, z: 0});
+		camera.lookAt({x: 0, y: 0, z:0});
+	}
+	requestAnimationFrame(Render);
+	controls.update();
+	renderer.render(scene, camera);
+}
+		</script>
+	</head>
+	<body onload="Start()">
+	Triangle: red; Colliding box: transparent blue; Non-colliding box: green; Least translation vector: green.<br>
+	<input value="Randomize positions" onclick="RemoveTest();RandomTest();Test();" type="button"><br>
+	Move box in axis: 
+	<input value="x+" onclick="RemoveTest();c[0]+=0.5;Test();" type="button">
+	<input value="x-" onclick="RemoveTest();c[0]-=0.5;Test();" type="button">
+	<input value="y+" onclick="RemoveTest();c[1]+=0.5;Test();" type="button">
+	<input value="y-" onclick="RemoveTest();c[1]-=0.5;Test();" type="button">
+	<input value="z+" onclick="RemoveTest();c[2]+=0.5;Test();" type="button">
+	<input value="z-" onclick="RemoveTest();c[2]-=0.5;Test();" type="button"><br>
+	<input value="Move box to solved position" onclick="RemoveTest();c[0]+=t[0];c[1]+=t[1];c[2]+=t[2];Test();" type="button"><br>
+	Blue box opacity: <input type="range" min="0" max="100" onchange="colorMaterials['blue'].opacity = this.value / 100;" value="50"><br>
+	</body>
+</html>
