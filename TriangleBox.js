@@ -349,7 +349,7 @@ function TriangleBoxCollision(c, e, _v, translation)
 			distance = newDistance;
 			axis = 
 			[
-				-1,
+				1,
 				0,
 				0
 			];
@@ -359,13 +359,13 @@ function TriangleBoxCollision(c, e, _v, translation)
 	if(b0min > e[0]) return false;
 	else
 	{
-		var newDistance = e[0] - b0min;
+		var newDistance = b0min - e[0];
 		if(Math.abs(newDistance) < Math.abs(distance))
 		{
 			distance = newDistance;
 			axis = 
 			[
-				1,
+				-1,
 				0,
 				0
 			];
@@ -382,7 +382,7 @@ function TriangleBoxCollision(c, e, _v, translation)
 			axis = 
 			[
 				0,
-				-1,
+				1,
 				0
 			];
 		}
@@ -391,14 +391,14 @@ function TriangleBoxCollision(c, e, _v, translation)
 	if(b1min > e[1]) return false;
 	else
 	{
-		var newDistance = e[1] - b1min;
+		var newDistance = b1min - e[1];
 		if(Math.abs(newDistance) < Math.abs(distance))
 		{
 			distance = newDistance;
 			axis = 
 			[
 				0,
-				1,
+				-1,
 				0
 			];
 		}
@@ -415,7 +415,7 @@ function TriangleBoxCollision(c, e, _v, translation)
 			[
 				0,
 				0,
-				-1
+				1
 			];
 		}
 	}
@@ -423,7 +423,7 @@ function TriangleBoxCollision(c, e, _v, translation)
 	if(b2min > e[2]) return false;
 	else
 	{
-		var newDistance = e[2] - b2min;
+		var newDistance = b2min - e[2];
 		if(Math.abs(newDistance) < Math.abs(distance))
 		{
 			distance = newDistance;
@@ -431,7 +431,7 @@ function TriangleBoxCollision(c, e, _v, translation)
 			[
 				0,
 				0,
-				1
+				-1
 			];
 		}
 	}
